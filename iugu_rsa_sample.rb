@@ -57,8 +57,15 @@ class IUGU_RSA_SAMPLE
         return @last_response
     end
 
-    def send_data(method, endpoint, data) # Link de referência: https://dev.iugu.com/reference/autentica%C3%A7%C3%A3o#d%C3%A9cimo-primeiro-passo
+    @last_response_code
+
+    def getLastResponseCode
+        return @last_response_code
+    end
+
+    def send_data(method, endpoint, data, response_code_ok) # Link de referência: https://dev.iugu.com/reference/autentica%C3%A7%C3%A3o#d%C3%A9cimo-primeiro-passo
         @last_response = "";
+        @last_response_code = 0;
         request_time = get_request_time()
         body = data;
         signature = sign_body(method, endpoint, request_time, body, get_private_key());
@@ -82,8 +89,8 @@ class IUGU_RSA_SAMPLE
         request.body = body
         
         response = http.request(request)
-        response_code = response.code;    
-        ret = (response_code == '200')
+        @last_response_code = response.code;    
+        ret = (@last_response_code == response_code_ok)
         @last_response = response.read_body     
 
         return ret
@@ -93,13 +100,13 @@ class IUGU_RSA_SAMPLE
     def signature_validate(data) # Link de referência: https://dev.iugu.com/reference/validate-signature
         method = "POST"
         endpoint = "/v1/signature/validate"
-        return send_data(method, endpoint, data)
+        return send_data(method, endpoint, data, '200')
     end
 
     def transfer_requests(data)
         method = "POST"
         endpoint = "/v1/transfer_requests"
-        return send_data(method, endpoint, data)
+        return send_data(method, endpoint, data, '202')
     end
 end
 
@@ -122,9 +129,9 @@ json = "{
             \"mensagem\": \"qualquer coisa\"
         }"
 if (iuru_rsa.signature_validate(json)) 
-    puts "Response: #{iuru_rsa.getLastResponse()}"
+    puts "Response: #{iuru_rsa.getLastResponseCode()} #{iuru_rsa.getLastResponse()}"
 else
-    puts "Error: #{iuru_rsa.getLastResponse()}"
+    puts "Error: #{iuru_rsa.getLastResponseCode()} #{iuru_rsa.getLastResponse()}"
 end
 ######################################################################################################
 
@@ -142,8 +149,8 @@ json = "{
             }
         }";
 if (iuru_rsa.transfer_requests(json))
-    puts "Response: #{iuru_rsa.getLastResponse()}"
+    puts "Response: #{iuru_rsa.getLastResponseCode()} #{iuru_rsa.getLastResponse()}"
 else
-    puts "Error: #{iuru_rsa.getLastResponse()}"
+    puts "Error: #{iuru_rsa.getLastResponseCode()} #{iuru_rsa.getLastResponse()}"
 end       
 ######################################################################################################
